@@ -92,6 +92,110 @@ good to go!
  */
 
 #include <iostream>
+
+class FloatType
+{
+public:
+    float add(float lhs, float rhs);
+    float subtract(float lhs, float rhs);
+    float multiply(float lhs, float rhs);
+    float divide(float lhs, float rhs);
+};
+
+float FloatType::add(float lhs, float rhs)
+{
+    return lhs + rhs;
+}
+
+float FloatType::subtract(float lhs, float rhs)
+{
+    return lhs - rhs;
+}
+
+float FloatType::multiply(float lhs, float rhs)
+{
+    return lhs * rhs;
+}
+
+float FloatType::divide(float lhs, float rhs)
+{
+    if(rhs == 0.f)
+    {
+        std::cerr << "warning, floating point division by zero returns 'inf'" << std::endl;
+    }
+    return lhs / rhs;
+}
+
+class DoubleType
+{
+public:
+    double add(double lhs, double rhs);
+    double subtract(double lhs, double rhs);
+    double multiply(double lhs, double rhs);
+    double divide(double lhs, double rhs);
+};
+
+double DoubleType::add(double lhs, double rhs)
+{
+    return lhs + rhs;
+}
+
+double DoubleType::subtract(double lhs, double rhs)
+{
+    return lhs - rhs;
+}
+
+double DoubleType::multiply(double lhs, double rhs)
+{
+    return lhs * rhs;
+}
+
+double DoubleType::divide(double lhs, double rhs)
+{
+    if(rhs == 0.0)
+    {
+        std::cerr << "warning, floating point division by zero returns 'inf'" << std::endl;
+    }
+    return lhs / rhs;
+}
+
+// IntType
+class IntType
+{
+public:
+    int add(int lhs, int rhs);
+    int subtract(int lhs, int rhs);
+    int multiply(int lhs, int rhs);
+    int divide(int lhs, int rhs);
+};
+
+int IntType::add(int lhs, int rhs)
+{
+    return lhs + rhs;
+}
+
+int IntType::subtract(int lhs, int rhs)
+{
+    return lhs - rhs;
+}
+
+int IntType::multiply(int lhs, int rhs)
+{
+    return lhs * rhs;
+}
+
+int IntType::divide(int lhs, int rhs)
+{
+    if(!rhs)
+    {
+        std::cerr << "error, integer division by zero will crash the program!" << std::endl << "returning lhs" << std::endl;
+    }
+    return lhs;
+}
+
+
+
+#include <iostream>
 int main() 
 {
     FloatType ft;
