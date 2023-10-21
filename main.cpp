@@ -542,9 +542,11 @@ IntType& IntType::divide(int i)
     if(i == 0)
     {
         std::cerr << "error: integer division by zero is an error and will crash the program!" << std::endl;
-        return *this;
     }
-    *value /= i;
+    else
+    {
+        *value /= i;
+    }
     return *this;
 }
 
