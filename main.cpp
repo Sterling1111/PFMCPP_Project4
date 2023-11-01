@@ -53,19 +53,41 @@ Project 4: Part 4 / 9
  You will need to use Forward Declaration and out-of-class definitions to complete this.
  */
 
+struct FloatType;
+struct DoubleType;
+struct IntType;
 
+#include <iostream>
+#include <cmath>
 
 struct Point
 {
+    Point(float a, float b) : x{a}, y{b} {}
+    explicit Point(const FloatType& ft);
+    explicit Point(const DoubleType& dt);
+    explicit Point(const IntType& it);
+
     Point& multiply(float m)
     {
         x *= m;
         y *= m;
         return *this;
     }
+
+    Point& multiply(const FloatType& ft);
+    Point& multiply(const DoubleType& dt);
+    Point& multiply(const IntType& it);
+
+    void toString() const
+    {
+        std::cout << "Point { x: " << x << ", y: " << y << " }" << std::endl;
+    }
+
 private:
     float x{0}, y{0};
 };
+
+/*
 
 void part4()
 {
@@ -150,6 +172,7 @@ void part4()
     p3.toString();   
     std::cout << "---------------------\n" << std::endl;
 }
+*/
 
 /*
 your program should generate the following output EXACTLY.
@@ -263,8 +286,6 @@ struct HeapA
 };
 
 
-
-
 /*
  MAKE SURE YOU ARE NOT ON THE MASTER BRANCH
 
@@ -279,9 +300,6 @@ struct HeapA
  Wait for my code review.
  */
 
-
-#include <iostream>
-
 struct DoubleType;
 struct IntType;
 
@@ -294,10 +312,15 @@ struct FloatType
     FloatType& subtract(float f);
     FloatType& multiply(float f);
     FloatType& divide(float f);
+    FloatType& pow(float f);
+    FloatType& pow(const FloatType& ft);
+    FloatType& pow(const DoubleType& ft);
+    FloatType& pow(const IntType& ft);
 
     operator float() const { return *value; }
 
 private:
+    FloatType& powInternal(float arg);
     float* value;
 };
 
@@ -310,10 +333,15 @@ struct DoubleType
     DoubleType& subtract(double d);
     DoubleType& multiply(double d);
     DoubleType& divide(double d);
+    DoubleType& pow(double f);
+    DoubleType& pow(const FloatType& ft);
+    DoubleType& pow(const DoubleType& ft);
+    DoubleType& pow(const IntType& ft);
 
     operator double() const { return *value; }
 
 private:
+    DoubleType& powInternal(double arg);
     double* value;
 };
 
@@ -326,10 +354,14 @@ struct IntType
     IntType& subtract(int i);
     IntType& multiply(int i);
     IntType& divide(int i);
-
+    IntType& pow(int f);
+    IntType& pow(const FloatType& ft);
+    IntType& pow(const DoubleType& ft);
+    IntType& pow(const IntType& ft);
     operator int() const { return *value; }
 
 private:
+    IntType& powInternal(int arg);
     int* value;
 };
 
@@ -368,6 +400,32 @@ FloatType& FloatType::divide(float f)
     return *this;
 }
 
+FloatType& FloatType::pow(float f)
+{
+    return powInternal(f);
+}
+
+FloatType& FloatType::pow(const FloatType& ft)
+{
+    return powInternal(static_cast<float>(ft));
+}
+
+FloatType& FloatType::pow(const DoubleType& dt)
+{
+    return powInternal(static_cast<float>(dt));
+}
+
+FloatType& FloatType::pow(const IntType& it)
+{
+    return powInternal(static_cast<float>(it));
+}
+
+FloatType& FloatType::powInternal(float f)
+{
+    *value = std::pow(*value, f);
+    return *this;
+}
+
 DoubleType::DoubleType(double d) : value{new double (d) } {}
 
 DoubleType::~DoubleType()
@@ -400,6 +458,32 @@ DoubleType& DoubleType::divide(double d)
         std::cerr << "warning: floating point division by zero!" << std::endl;
     }
     *value /= d;
+    return *this;
+}
+
+DoubleType& DoubleType::pow(double d)
+{
+    return powInternal(d);
+}
+
+DoubleType& DoubleType::pow(const FloatType& ft)
+{
+    return powInternal(static_cast<double>(ft));
+}
+
+DoubleType& DoubleType::pow(const DoubleType& dt)
+{
+    return powInternal(static_cast<double>(dt));
+}
+
+DoubleType& DoubleType::pow(const IntType& it)
+{
+    return powInternal(static_cast<double>(it));
+}
+
+DoubleType& DoubleType::powInternal(double d)
+{
+    *value = std::pow(*value, d);
     return *this;
 }
 
@@ -441,6 +525,52 @@ IntType& IntType::divide(int i)
     return *this;
 }
 
+IntType& IntType::pow(int i)
+{
+    return powInternal(i);
+}
+
+IntType& IntType::pow(const FloatType& ft)
+{
+    return powInternal(static_cast<int>(ft));
+}
+
+IntType& IntType::pow(const DoubleType& dt)
+{
+    return powInternal(static_cast<int>(dt));
+}
+
+IntType& IntType::pow(const IntType& it)
+{
+    return powInternal(static_cast<int>(it));
+}
+
+IntType& IntType::powInternal(int i)
+{
+    *value = static_cast<int>(std::pow(static_cast<double>(*value), static_cast<double>(i)));
+    return *this;
+}
+
+Point::Point(const FloatType& ft) : Point(static_cast<float>(ft), static_cast<float>(ft)) {}
+Point::Point(const DoubleType& dt) : Point(static_cast<float>(dt), static_cast<float>(dt)) {}
+Point::Point(const IntType& it) : Point(static_cast<float>(it), static_cast<float>(it)) {}
+
+Point& Point::multiply(const FloatType& ft)
+{
+    return multiply(static_cast<float>(ft));
+}
+
+Point& Point::multiply(const DoubleType& dt)
+{
+    return multiply(static_cast<float>(dt));
+}
+
+Point& Point::multiply(const IntType& it)
+{
+    return multiply(static_cast<float>(it));
+}
+
+
 void part3()
 {
     FloatType ft( 5.5f );
@@ -458,7 +588,89 @@ void part3()
     std::cout << "(IntType + DoubleType + FloatType) x 24 = " << it.add(static_cast<int>( dt )).add(static_cast<int>( ft )).multiply( 24 ) << std::endl;
 }
 
-#include <iostream>
+void part4()
+{
+    // ------------------------------------------------------------
+    //                          Power tests
+    // ------------------------------------------------------------
+    FloatType ft1(2);
+    DoubleType dt1(2);
+    IntType it1(2);    
+    float floatExp = 2.0f;
+    double doubleExp = 2.0;
+    int intExp = 2;
+    IntType itExp(2);
+    FloatType ftExp(2.0f);
+    DoubleType dtExp(2.0);
+
+    // Power tests with FloatType
+    std::cout << "Power tests with FloatType " << std::endl;
+    std::cout << "pow(ft1, floatExp) = " << ft1 << "^" << floatExp << " = " << ft1.pow(floatExp)  << std::endl;
+    std::cout << "pow(ft1, itExp) = " << ft1 << "^" << itExp << " = " << ft1.pow(itExp)  << std::endl;
+    std::cout << "pow(ft1, ftExp) = " << ft1 << "^" << ftExp << " = " << ft1.pow(ftExp)  << std::endl;    
+    std::cout << "pow(ft1, dtExp) = " << ft1 << "^" << dtExp << " = " << ft1.pow(dtExp)  << std::endl;    
+    std::cout << "---------------------\n" << std::endl;  
+
+    // Power tests with DoubleType
+    std::cout << "Power tests with DoubleType " << std::endl;
+    std::cout << "pow(dt1, doubleExp) = " << dt1 << "^" << doubleExp << " = " << dt1.pow(intExp)  << std::endl;
+    std::cout << "pow(dt1, itExp) = " << dt1 << "^" << itExp << " = " << dt1.pow(itExp)  << std::endl;
+    std::cout << "pow(dt1, ftExp) = " << dt1 << "^" << ftExp << " = " << dt1.pow(ftExp)  << std::endl;    
+    std::cout << "pow(dt1, dtExp) = " << dt1 << "^" << dtExp << " = " << dt1.pow(dtExp)  << std::endl;    
+    std::cout << "---------------------\n" << std::endl;    
+
+    // Power tests with IntType
+    std::cout << "Power tests with IntType " << std::endl;
+    std::cout << "pow(it1, intExp) = " << it1 << "^" << intExp << " = " << it1.pow(intExp)  << std::endl;
+    std::cout << "pow(it1, itExp) = " << it1 << "^" << itExp << " = " << it1.pow(itExp)  << std::endl;
+    std::cout << "pow(it1, ftExp) = " << it1 << "^" << ftExp << " = " << it1.pow(ftExp)  << std::endl;    
+    std::cout << "pow(it1, dtExp) = " << it1 << "^" << dtExp << " = " << it1.pow(dtExp)  << std::endl;    
+    std::cout << "===============================\n" << std::endl; 
+
+    // ------------------------------------------------------------
+    //                          Point tests
+    // ------------------------------------------------------------
+    FloatType ft2(3.0f);
+    DoubleType dt2(4.0);
+    IntType it2(5);
+    float floatMul = 6.0f;
+
+    // Point tests with float
+    std::cout << "Point tests with float argument:" << std::endl;
+    Point p0(ft2, floatMul);
+    p0.toString();   
+    std::cout << "Multiplication factor: " << floatMul << std::endl;
+    p0.multiply(floatMul); 
+    p0.toString();   
+    std::cout << "---------------------\n" << std::endl;
+
+    // Point tests with FloatType
+    std::cout << "Point tests with FloatType argument:" << std::endl;
+    Point p1(ft2, ft2);
+    p1.toString();   
+    std::cout << "Multiplication factor: " << ft2 << std::endl;
+    p1.multiply(ft2); 
+    p1.toString();   
+    std::cout << "---------------------\n" << std::endl;
+
+    // Point tests with DoubleType
+    std::cout << "Point tests with DoubleType argument:" << std::endl;
+    Point p2(ft2, static_cast<float>(dt2));
+    p2.toString();   
+    std::cout << "Multiplication factor: " << dt2 << std::endl;
+    p2.multiply(dt2); 
+    p2.toString();   
+    std::cout << "---------------------\n" << std::endl;
+
+    // Point tests with IntType
+    std::cout << "Point tests with IntType argument:" << std::endl;
+    Point p3(ft2, static_cast<float>(dt2));
+    p3.toString();   
+    std::cout << "Multiplication factor: " << it2 << std::endl;
+    p3.multiply(it2); 
+    p3.toString();   
+    std::cout << "---------------------\n" << std::endl;
+}
 
 int main()
 {   
@@ -512,6 +724,7 @@ int main()
     std::cout << "---------------------\n" << std::endl;
 
     part3();
+    part4();
 
     std::cout << "good to go!\n";
 
