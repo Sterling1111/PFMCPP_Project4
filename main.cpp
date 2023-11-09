@@ -240,16 +240,33 @@ struct Numeric
 public:
     using Type = NumericType;
 
-    explicit Numeric(Type val);
+    explicit Numeric(Type val) : value(std::make_unique<Type>(val)) {}
+
     ~Numeric() {}
 
-    Numeric& operator+=(Type val);
-    Numeric& operator-=(Type val);
-    Numeric& operator*=(Type val);
+    Numeric& operator+=(Type val)
+    {
+        *value += val;
+        return *this;
+    }
+
+    Numeric& operator-=(Type val)
+    {
+        *value -= val;
+        return *this;
+    }
+
+    Numeric& operator*=(Type val)
+    {
+        *value *= val;
+        return *this;
+    }
 
     template<typename ValType>
     Numeric& operator/= (ValType val)
     {
+        bool doDivision = true;
+
         if constexpr (std::is_same<Type, int>::value)
         {
             if constexpr (std::is_same<ValType, int>::value)
@@ -259,13 +276,13 @@ public:
                     std::cout << "error: integer division by zero is "
                                  "an error and will crash the program!"
                               << std::endl;
-                    return *this;
+                    doDivision = false; 
                 }
             }
             else if (std::abs(val) < std::numeric_limits<ValType>::epsilon())
             {
                 std::cout << "can't divide integers by zero!" << std::endl;
-                return *this;                    
+                doDivision = false; 
             }
         }
         else if (std::abs(val) < std::numeric_limits<Type>::epsilon())
@@ -273,25 +290,51 @@ public:
             std::cout << "warning: floating point division by zero!"
                       << std::endl;
         }
-        *value /= static_cast<Type>(val);
-        return *this;            
+
+        if (doDivision)
+        {
+            *value /= static_cast<Type>(val);
+        }
+
+        return *this;
     }
 
     template<typename ValType>
     Numeric& pow(const ValType& arg)
     {
-        return powInternal (static_cast<Type> (arg));
+        return powInternal(static_cast<Type>(arg));
     }
-    
-    Numeric& apply(std::function<Numeric&(std::unique_ptr<Type>&)> f);
-    Numeric& apply (void (*f)(std::unique_ptr<Type>&));
+
+    Numeric& apply(std::function<Numeric&(std::unique_ptr<Type>&)> f)
+    {
+        if(f != nullptr)
+        {
+            f(value);
+        }
+        return *this;
+    }
+
+    Numeric& apply(void (*f)(std::unique_ptr<Type>&))
+    {
+        if(f != nullptr)
+        {
+            f(value);
+        }
+        return *this;
+    }
 
     operator Type() const { return *value; }
 
 private:
-    Numeric& powInternal (Type val);
+    Numeric& powInternal(Type val)
+    {
+        *value = static_cast<Type>(std::pow(*value, val));
+        return *this;
+    }
+
     std::unique_ptr<Type> value;
 };
+
 
 template<>
 struct Numeric<double>
@@ -356,57 +399,6 @@ private:
     std::unique_ptr<Type> value;
 };
 
-
-template<typename Type>
-Numeric<Type>::Numeric(Type val) : value(std::make_unique<Type>(val)) {}
-
-template<typename Type>
-Numeric<Type>& Numeric<Type>::operator+=(Type val) 
-{
-    *value += val;
-    return *this;
-}
-
-template<typename Type>
-Numeric<Type>& Numeric<Type>::operator-=(Type val) 
-{
-    *value -= val;
-    return *this;
-}
-
-template<typename Type>
-Numeric<Type>& Numeric<Type>::operator*=(Type val) 
-{
-    *value *= val;
-    return *this;
-}
-
-template<typename Type>
-Numeric<Type>& Numeric<Type>::powInternal(Type val)
-{
-    *value = static_cast<Type>(std::pow (*value, val));
-    return *this;
-}
-
-template<typename Type>
-Numeric<Type>& Numeric<Type>::apply(std::function<Numeric&(std::unique_ptr<Type>&)> f) 
-{
-    if(f != nullptr)
-    {
-        f(value);
-    }
-    return *this;
-}
-
-template<typename Type>
-Numeric<Type>& Numeric<Type>::apply(void (*f)(std::unique_ptr<Type>&)) 
-{
-    if(f != nullptr)
-    {
-        f(value);
-    }
-    return *this;
-}
 
 struct Point
 {
