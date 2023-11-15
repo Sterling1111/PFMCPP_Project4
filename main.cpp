@@ -13,14 +13,6 @@ Create a branch named Part9
  2) move these macros after the JUCE_LEAK_DETECTOR macro :
  */
 
-#define JUCE_DECLARE_NON_COPYABLE(className) \
-            className (const className&) = delete;\
-            className& operator= (const className&) = delete;
-
-#define JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(className) \
-            JUCE_DECLARE_NON_COPYABLE(className) \
-            JUCE_LEAK_DETECTOR(className)
-
 /*
  3) add JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Temporary) to the end of the  Temporary<> struct
  
@@ -75,6 +67,7 @@ Use a service like https://www.diffchecker.com/diff to compare your output.
 #include <iostream>
 #include <cmath>
 #include <functional>
+#include "LeakedObjectDetector.h"
 
 template<typename NumericType>
 struct Temporary
@@ -83,6 +76,19 @@ struct Temporary
     {
         std::cout << "I'm a Temporary<" << typeid(v).name() << "> object, #"
                   << counter++ << std::endl;
+    }
+
+    Temporary (Temporary&& other) 
+    {
+        v = other.v;
+    }
+
+    ~Temporary() = default;
+
+    Temporary& operator=(Temporary&& other) noexcept
+    {
+        v = other.v;
+        return *this;
     }
 
     operator NumericType() const 
@@ -96,6 +102,7 @@ struct Temporary
 private:
     static int counter;
     NumericType v;
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Temporary);
 };
 
 
@@ -144,7 +151,18 @@ public:
     template<typename ValType>
     explicit Numeric(ValType val) : value(std::make_unique<Type>(static_cast<NumericType>(val))) {}
 
-    ~Numeric() {}
+    Numeric(Numeric&& other) noexcept
+    {
+        value = other.value;
+    }
+
+    Numeric& operator=(Numeric&& other) noexcept
+    {
+        value = other.value;
+        return *this;
+    }
+
+    ~Numeric() = default;
 
     template<typename ValType>
     Numeric& operator+=(const ValType& val)
@@ -229,6 +247,7 @@ public:
 
 private:
     std::unique_ptr<Type> value;
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Numeric)
 };
 
 struct Point
@@ -474,11 +493,10 @@ void part7()
 // Remember to define myNumericFreeFunct for float, double, and int outside the part7 function
 
 template <typename ValType>
-ValType cube (std::unique_ptr<ValType>& val)
+void cube (std::unique_ptr<ValType>& val)
 {
-    auto v = *val;
+    auto v = std::move(*val);
     *val = v * v * v;
-    return v;
 }
 
 int main()
